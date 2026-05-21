@@ -1,0 +1,16 @@
+# Исключения для Backend
+backend/venv/
+backend/.env
+
+# Игнорировать ВЕЗДЕ (любая глубина)
+__pycache__/
+*.db
+*.pyc
+
+# Исключения для Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Системные файлы
+.DS_Store
