@@ -11,7 +11,7 @@ export default function AuthPanel({ isLoginMode, setIsLoginMode, email, setEmail
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAuthSubmit} className="space-y-4">
-          <Input type="email" placeholder="Корпоративная почта (@sibadi.org)" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isAuthLoading} />
+          <Input type="email" placeholder="Электронная почта" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isAuthLoading} />
           <Input type="password" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isAuthLoading} />
           <Button type="submit" className="w-full bg-[#315b8c] hover:bg-[#264871] text-white" disabled={isAuthLoading}>
             {isAuthLoading ? <LoaderCircle className="w-5 h-5 animate-spin" /> : (isLoginMode ? "Войти" : "Зарегистрироваться")}
