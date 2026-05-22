@@ -4,19 +4,12 @@ import api from '../api';
 
 const ChatWindow = ({ isLoggedIn, userId, onRequireAuth }) => {
     
-    const storageKey = `sibadi_chat_${userId || 'guest'}`;
+    const welcomeMessage = { 
+        sender: 'bot', 
+        text: 'Здравствуйте! Я интеллектуальный ассистент СибАДИ.\nЯ готов ответить на ваши вопросы по регламенту поддержки молодых научно-педагогических работников. Чем я могу вам помочь сегодня?' 
+    };
 
-    const [messages, setMessages] = useState(() => {
-        const savedHistory = localStorage.getItem(storageKey);
-        if (savedHistory) {
-            return JSON.parse(savedHistory);
-        }
-        return [{ 
-            sender: 'bot', 
-            text: 'Здравствуйте! Я интеллектуальный ассистент СибАДИ.\nЯ готов ответить на ваши вопросы по регламенту поддержки молодых научно-педагогических работников. Чем я могу вам помочь сегодня?' 
-        }];
-    });
-
+    const [messages, setMessages] = useState([welcomeMessage]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
@@ -26,18 +19,28 @@ const ChatWindow = ({ isLoggedIn, userId, onRequireAuth }) => {
     };
 
     useEffect(() => {
-        const savedHistory = localStorage.getItem(storageKey);
-        if (savedHistory) {
-            setMessages(JSON.parse(savedHistory));
+        if (isLoggedIn && userId) {
+            api.get(`/chat/${userId}/history`)
+                .then(res => {
+                    if (res.data && res.data.length > 0) {
+                        const formattedHistory = res.data.map(m => ({
+                            sender: m.sender,
+                            text: m.content
+                        }));
+                        setMessages(formattedHistory);
+                    } else {
+                        setMessages([welcomeMessage]);
+                    }
+                })
+                .catch(err => console.error("Ошибка загрузки истории:", err));
         } else {
-            setMessages([{ sender: 'bot', text: 'Здравствуйте! Я интеллектуальный ассистент СибАДИ.\nЯ готов ответить на ваши вопросы по регламенту поддержки молодых научно-педагогических работников. Чем я могу вам помочь сегодня?' }]);
+            setMessages([welcomeMessage]);
         }
-    }, [storageKey]);
+    }, [isLoggedIn, userId]);
 
     useEffect(() => {
-        localStorage.setItem(storageKey, JSON.stringify(messages));
         scrollToBottom();
-    }, [messages, storageKey]);
+    }, [messages]);
 
     const sendMessage = async (e) => {
         if (e) e.preventDefault();
@@ -50,7 +53,7 @@ const ChatWindow = ({ isLoggedIn, userId, onRequireAuth }) => {
         setIsLoading(true);
 
         try {
-            const response = await api.post('/chat/1/message', { content: userText }); 
+            const response = await api.post(`/chat/${userId}/message`, { content: userText }); 
             setMessages((prev) => [...prev, { sender: 'bot', text: response.data.content }]);
         } catch (error) {
             setMessages((prev) => [...prev, { sender: 'bot', text: '⚠️ Извините, произошла ошибка связи с сервером.' }]);
