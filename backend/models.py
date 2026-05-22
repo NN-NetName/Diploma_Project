@@ -14,16 +14,17 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     npr_profile = relationship("NprProfile", foreign_keys="NprProfile.user_id", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    mentor_profile = relationship("MentorProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    tickets_authored = relationship("Ticket", foreign_keys='Ticket.user_id', back_populates="author", cascade="all, delete-orphan")
-    tickets_received = relationship("Ticket", foreign_keys='Ticket.mentor_id', back_populates="mentor", cascade="all, delete-orphan")
+    mentor_profile = relationship("MentorProfile", foreign_keys="MentorProfile.user_id", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    
     chats = relationship("ChatSession", back_populates="owner", cascade="all, delete-orphan")
 
 class NprProfile(Base):
+    """Таблица только для молодых НПР (соискателей)"""
     __tablename__ = "npr_profiles"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
-    mentor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    mentor_id = Column(Integer, ForeignKey("mentor_profiles.id"), nullable=True)
 
     full_name = Column(String, nullable=True)
     birth_date = Column(String, nullable=True)
@@ -36,21 +37,28 @@ class NprProfile(Base):
     calculated_grade = Column(String, nullable=True)
 
     user = relationship("User", foreign_keys=[user_id], back_populates="npr_profile")
+    mentor = relationship("MentorProfile", foreign_keys=[mentor_id], back_populates="mentees")
+    
+    tickets = relationship("Ticket", foreign_keys="Ticket.user_id", back_populates="author", cascade="all, delete-orphan")
 
 class MentorProfile(Base):
+    """Таблица только для Наставников"""
     __tablename__ = "mentor_profiles"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
-    
     full_name = Column(String, nullable=True)
 
     user = relationship("User", foreign_keys=[user_id], back_populates="mentor_profile")
+    
+    mentees = relationship("NprProfile", foreign_keys="NprProfile.mentor_id", back_populates="mentor")
+    tickets = relationship("Ticket", foreign_keys="Ticket.mentor_id", back_populates="mentor", cascade="all, delete-orphan")
 
 class Ticket(Base):
     __tablename__ = "tickets"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    mentor_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    user_id = Column(Integer, ForeignKey("npr_profiles.id"), nullable=False)
+    mentor_id = Column(Integer, ForeignKey("mentor_profiles.id"), nullable=False)
     
     question = Column(Text, nullable=False)
     answer = Column(Text, nullable=True)
@@ -58,15 +66,15 @@ class Ticket(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    author = relationship("User", foreign_keys=[user_id], back_populates="tickets_authored")
-    mentor = relationship("User", foreign_keys=[mentor_id], back_populates="tickets_received")
+    author = relationship("NprProfile", foreign_keys=[user_id], back_populates="tickets")
+    mentor = relationship("MentorProfile", foreign_keys=[mentor_id], back_populates="tickets")
 
 class ChatSession(Base):
     __tablename__ = "chat_sessions"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    title = Column(String(100), default="Новый диалог")
     created_at = Column(DateTime, default=datetime.utcnow)
+    
     owner = relationship("User", back_populates="chats")
     messages = relationship("Message", back_populates="session", cascade="all, delete-orphan")
 

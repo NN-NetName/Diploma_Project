@@ -25,7 +25,7 @@ def send_message(user_id: int, message: schemas.MessageCreate, db: Session = Dep
 
     session = db.query(models.ChatSession).filter(models.ChatSession.user_id == user_id).first()
     if not session:
-        session = models.ChatSession(user_id=user_id, title="Диалог с ИИ")
+        session = models.ChatSession(user_id=user_id)
         db.add(session)
         db.commit()
         db.refresh(session)
