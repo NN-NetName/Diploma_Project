@@ -15,15 +15,12 @@ class User(Base):
 
     npr_profile = relationship("NprProfile", foreign_keys="NprProfile.user_id", back_populates="user", uselist=False, cascade="all, delete-orphan")
     mentor_profile = relationship("MentorProfile", foreign_keys="MentorProfile.user_id", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    
     chats = relationship("ChatSession", back_populates="owner", cascade="all, delete-orphan")
 
 class NprProfile(Base):
-    """Таблица только для молодых НПР (соискателей)"""
     __tablename__ = "npr_profiles"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
-    
     mentor_id = Column(Integer, ForeignKey("mentor_profiles.id"), nullable=True)
 
     full_name = Column(String, nullable=True)
@@ -42,14 +39,12 @@ class NprProfile(Base):
     tickets = relationship("Ticket", foreign_keys="Ticket.user_id", back_populates="author", cascade="all, delete-orphan")
 
 class MentorProfile(Base):
-    """Таблица только для Наставников"""
     __tablename__ = "mentor_profiles"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
     full_name = Column(String, nullable=True)
 
     user = relationship("User", foreign_keys=[user_id], back_populates="mentor_profile")
-    
     mentees = relationship("NprProfile", foreign_keys="NprProfile.mentor_id", back_populates="mentor")
     tickets = relationship("Ticket", foreign_keys="Ticket.mentor_id", back_populates="mentor", cascade="all, delete-orphan")
 

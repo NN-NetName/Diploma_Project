@@ -17,7 +17,6 @@ class RAGService:
         self.embedder = None
         
     def initialize(self):
-        """Загружает модель, читает PDF и строит векторный индекс."""
         print("⏳ Загрузка модели эмбеддингов 'rubert-tiny2'...")
         self.embedder = SentenceTransformer('cointegrated/rubert-tiny2')
         
@@ -68,7 +67,6 @@ class RAGService:
         print("✅ Векторная база FAISS готова к работе!")
 
     def find_relevant_context(self, query: str) -> str:
-        """Ищет релевантные фрагменты гибридным методом."""
         if not self.faiss_index:
             return ""
 
@@ -113,7 +111,6 @@ class RAGService:
         return "\n---\n".join(final_results[:3])
 
     def ask_gigachat(self, user_question: str, context: str) -> str:
-        """Формирует промпт и отправляет запрос в нейросеть."""
         if not context: 
             return "Информация в регламенте не найдена. Пожалуйста, уточните ваш вопрос."
         
