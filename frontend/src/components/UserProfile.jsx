@@ -34,7 +34,7 @@ export default function UserProfile({ profileData, isProfileEditing, setIsProfil
             {!isProfileEditing ? (
               <>
                 <Button type="button" onClick={(e) => { e.preventDefault(); setIsProfileEditing(true); }} className="w-full md:w-auto bg-slate-600 hover:bg-slate-700 text-white">Редактировать профиль</Button>
-                <Button type="button" onClick={handleDownloadDocx} className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white shadow-md"><Download className="w-4 h-4 mr-2" /> Скачать анкету (.docx)</Button>
+                <Button type="button" onClick={handleDownloadDocx} className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white shadow-md"><Download className="w-4 h-4 mr-2" /> Скачать анкету</Button>
               </>
             ) : (
               <Button type="submit" className="w-full md:w-auto bg-[#315b8c] hover:bg-[#264871] text-white">Сохранить и рассчитать грейд</Button>

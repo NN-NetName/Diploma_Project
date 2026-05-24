@@ -105,15 +105,38 @@ def update_user_status(user_id: int, status_data: UserStatusUpdate, db: Session 
         db.commit()
     return {"message": "Статус обновлен"}
 
+from models import MentorProfile # Убедись, что этот импорт есть вверху файла, или добавь его
+
 @router.get("/profile/{user_id}")
 def get_profile(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user: raise HTTPException(status_code=404, detail="Пользователь не найден")
     
     if user.role == "user" and user.npr_profile:
-        return {"profile": user.npr_profile, "grade_prediction": user.npr_profile.calculated_grade}
+        # Преобразуем профиль в словарь, чтобы безопасно подменить ID наставника
+        profile_data = {
+            "full_name": user.npr_profile.full_name,
+            "birth_date": user.npr_profile.birth_date,
+            "education": user.npr_profile.education,
+            "department": user.npr_profile.department,
+            "position": user.npr_profile.position,
+            "experience_years": user.npr_profile.experience_years,
+            "vak_publications": user.npr_profile.vak_publications,
+            "rinc_publications": user.npr_profile.rinc_publications,
+            "mentor_id": None
+        }
+        
+        # Если наставник выбран, переводим его внутренний ID в ID пользователя для React
+        if user.npr_profile.mentor_id:
+            mentor_prof = db.query(MentorProfile).filter(MentorProfile.id == user.npr_profile.mentor_id).first()
+            if mentor_prof:
+                profile_data["mentor_id"] = mentor_prof.user_id
+                
+        return {"profile": profile_data, "grade_prediction": user.npr_profile.calculated_grade}
+        
     elif user.role == "mentor" and user.mentor_profile:
         return {"profile": {"full_name": user.mentor_profile.full_name, "experience_years": 0, "vak_publications": 0, "rinc_publications": 0}}
+    
     return {"profile": {}, "grade_prediction": None}
 
 @router.get("/profile/{user_id}/export")
